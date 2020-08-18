@@ -25,9 +25,12 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.zup.beagle.android.action.Action
+import br.com.zup.beagle.android.action.SetContext
 import br.com.zup.beagle.android.context.Bind
 import br.com.zup.beagle.android.context.ContextComponent
 import br.com.zup.beagle.android.context.ContextData
+import br.com.zup.beagle.android.context.expressionOf
+import br.com.zup.beagle.android.context.normalize
 import br.com.zup.beagle.android.utils.generateViewModelInstance
 import br.com.zup.beagle.android.utils.getContextBinding
 import br.com.zup.beagle.android.utils.observeBindChanges
@@ -69,11 +72,10 @@ internal data class ListViewTwo(
 
     override fun buildView(rootView: RootView): View {
         val recyclerView = viewFactory.makeRecyclerView(rootView.getContext())
-        onInit?.forEach { action ->
-            action.execute(rootView, recyclerView)
-        }
+
         val orientation = toRecyclerViewOrientation()
         contextAdapter = ListViewContextAdapter2(template, iteratorName, viewFactory, orientation, rootView)
+//        contextAdapter.setHasStableIds(true)
         recyclerView.apply {
             setHasFixedSize(true)
             adapter = contextAdapter
@@ -82,6 +84,10 @@ internal data class ListViewTwo(
         }
         configDataSourceObserver(rootView, recyclerView)
         configRecyclerViewScrollListener(recyclerView, rootView)
+
+        onInit?.forEach { action ->
+            action.execute(rootView, recyclerView)
+        }
 
         return recyclerView
     }
@@ -149,7 +155,20 @@ internal class ListViewContextAdapter2(
 
     private val viewModel = rootView.generateViewModelInstance<ScreenContextViewModel>()
 
-    override fun getItemViewType(position: Int) = position
+//    override fun getItemViewType(position: Int) = position
+
+//    override fun getItemId(position: Int) = position.toLong()
+
+    override fun onViewRecycled(holder: ContextViewHolderTwo) {
+        super.onViewRecycled(holder)
+//        Log.i("LIST", "onViewRecycled")
+    }
+
+    override fun onViewDetachedFromWindow(holder: ContextViewHolderTwo) {
+        super.onViewDetachedFromWindow(holder)
+//        Log.i("LIST", "onViewDetachedFromWindow")
+        viewModel.clearContexts(holder.itemView)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, position: Int): ContextViewHolderTwo {
 //        Log.i("LIST", "onCreateViewHolder")
@@ -157,11 +176,13 @@ internal class ListViewContextAdapter2(
             rootView.getContext(),
             Style(flex = Flex(flexDirection = flexDirection()))
         ).apply {
+            id = viewModel.generateNewViewId()
             layoutParams = LayoutParams(layoutParamWidth(), layoutParamHeight())
             addServerDrivenComponent(template, this@ListViewContextAdapter2.rootView)
-            setContextData(ContextData(id = getContextDataId(), value = ""))
+//            setContextData(ContextData(id = getContextDataId(), value = ""))
         }
-        viewModel.linkBindingToContext()
+//        viewModel.addContext(view, ContextData(id = getContextDataId(), value = ""))
+//        viewModel.linkBindingToContext()
         return ContextViewHolderTwo(view)
     }
 
@@ -175,15 +196,31 @@ internal class ListViewContextAdapter2(
 
     private fun getContextDataId() = iteratorName ?: "item"
 
+    override fun onBindViewHolder(holder: ContextViewHolderTwo, position: Int) {
+//        Log.i("LIST", "onBindViewHolder position $position")
+
+//        holder.itemView.setContextData(ContextData(id = getContextDataId(), value = listItems[position]))
+
+        viewModel.addContext(holder.itemView, ContextData(id = getContextDataId(), value = listItems[position]))
+        viewModel.linkBindingToContextAndEvaluateThem(holder.itemView)
+
+//        viewModel.addImplicitContext(
+//            ContextData(id = getContextDataId(), value = listItems[position]).normalize(),
+//            holder.itemView,
+//            emptyList()
+//        )
+    }
+
     override fun onViewAttachedToWindow(holder: ContextViewHolderTwo) {
 //        Log.i("LIST", "onViewAttachedToWindow")
         super.onViewAttachedToWindow(holder)
-        viewModel.linkBindingToContextAndEvaluateThem(holder.itemView)
-    }
 
-    override fun onBindViewHolder(holder: ContextViewHolderTwo, position: Int) {
-//        Log.i("LIST", "onBindViewHolder position $position")
-        holder.itemView.setContextData(ContextData(id = getContextDataId(), value = listItems[position]))
+
+//        viewModel.evaluateExpressionForImplicitContext(
+//            holder.itemView,
+//            bind = expressionOf<Any>("@{${getContextDataId()}}")
+//        )
+
     }
 
     fun setList(list: List<Any>) {

@@ -69,6 +69,10 @@ internal class ScreenContextViewModel(
         contextDataManager.linkBindingToContext()
     }
 
+    fun evaluateContexts(view: View) {
+        contextDataManager.evaluateContexts(view)
+    }
+
     fun linkBindingToContextAndEvaluateThem(view: View? = null) {
         contextDataManager.linkBindingToContext()
         contextDataManager.evaluateContexts(view)
@@ -92,6 +96,11 @@ internal class ScreenContextViewModel(
     fun clearContexts() {
         resetIds()
         contextDataManager.clearContexts()
+    }
+
+    fun clearContexts(view: View) {
+        viewIds.remove(view.id)
+        contextDataManager.clearContext(view)
     }
 
     override fun onCleared() {

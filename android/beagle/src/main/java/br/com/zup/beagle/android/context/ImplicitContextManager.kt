@@ -38,6 +38,14 @@ class ImplicitContextManager {
         )
     }
 
+    fun getContextFromSender(sender: Any): MutableList<ContextData> {
+        val contexts = mutableListOf<ContextData>()
+
+        contexts += implicitContextData.first { it.sender == sender }.context
+
+        return contexts
+    }
+
     // BindCaller is who owns the Bind Attribute
     fun getImplicitContextForBind(bindCaller: Action): List<ContextData> {
         val contexts = mutableListOf<ContextData>()

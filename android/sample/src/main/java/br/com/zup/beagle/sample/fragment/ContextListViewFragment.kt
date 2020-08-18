@@ -49,9 +49,8 @@ class ContextListViewFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val declarative = Screen(
-            context = ContextData("test", "test"),
             navigationBar = NavigationBar(title = "List"),
-            child = listGenres
+            child = list
         )
         return context?.let { declarative.toView(this) }
     }
@@ -90,8 +89,8 @@ class ContextListViewFragment : Fragment() {
     private fun buildListView() = ListView(
         context = ContextData(
             id = "outsideContext",
-            value = listOf("1 OUTSIDE", "2 OUTSIDE", "3 OUTSIDE", "4 OUTSIDE", "5 OUTSIDE",
-                "6 OUTSIDE", "7 OUTSIDE", "8 OUTSIDE", "9 OUTSIDE", "10 OUTSIDE")
+            value = listOf("1 OUTSIDE"/*, "2 OUTSIDE", "3 OUTSIDE", "4 OUTSIDE", "5 OUTSIDE",
+                "6 OUTSIDE", "7 OUTSIDE", "8 OUTSIDE", "9 OUTSIDE", "10 OUTSIDE"*/)
         ),
         dataSource = expressionOf("@{outsideContext}"),
         direction = ListDirection.VERTICAL,

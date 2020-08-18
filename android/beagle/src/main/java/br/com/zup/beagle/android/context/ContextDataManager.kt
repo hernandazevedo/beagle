@@ -49,6 +49,10 @@ internal class ContextDataManager(
         GlobalContext.observeGlobalContextChange(globalContextObserver)
     }
 
+    fun clearContext(view: View) {
+        contexts.remove(view.id)
+    }
+
     fun clearContexts() {
         contexts.clear()
         viewBinding.clear()
@@ -64,7 +68,7 @@ internal class ContextDataManager(
         val existingContext = contexts[view.id]
 
         if (existingContext != null) {
-            view.setContextBinding(existingContext)
+            view.setContextBinding(existingContext.copy(context = context))
             existingContext.bindings.clear()
         } else {
             view.setContextData(context)
@@ -100,6 +104,7 @@ internal class ContextDataManager(
     fun getContextsFromBind(originView: View, binding: Bind.Expression<*>): List<ContextData> {
         val parentContexts = originView.getAllParentContextWithGlobal()
         val contextIds = binding.value.getExpressions().map { it.getContextId() }
+//        return contexts.values.filter { contextIds.contains(it.context.id) }.map { it.context }
         return parentContexts.filterKeys { contextIds.contains(it) }.map { it.value.context }
     }
 
